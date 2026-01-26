@@ -7,10 +7,22 @@ from dolibarr_client import DolibarrClient
 from risk_service import RiskService
 from schemas import CustomerRiskOut
 from crud import alerts_crud, risk_crud
+from fastapi.middleware.cors import CORSMiddleware
+
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Smart Customer Alerts API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",   
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # GET /risk/customers
