@@ -5,3 +5,10 @@ __pycache__/
 .venv/
 STP.md
 
+allure-results/
+allure-report/
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+.venv/

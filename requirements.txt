@@ -7,3 +7,5 @@ sqlalchemy
 
 pytest
 pytest-cov
+
+allure-pytest
