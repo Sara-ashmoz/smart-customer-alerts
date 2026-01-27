@@ -1,5 +1,6 @@
 name: API Tests + Allure
 
+
 on:
   pull_request:
     branches: [ "main" ]
