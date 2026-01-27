@@ -47,3 +47,8 @@ jobs:
           name: allure-report
           path: allure-report
 
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        # with:
+        #   token: ${{ secrets.CODECOV_TOKEN }}
+
