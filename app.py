@@ -8,6 +8,9 @@ from risk_service import RiskService
 from schemas import CustomerRiskOut
 from crud import alerts_crud, risk_crud
 from fastapi.middleware.cors import CORSMiddleware
+from settings import settings
+from fastapi import BackgroundTasks
+from email_service import send_email_smtp
 
 
 Base.metadata.create_all(bind=engine)
@@ -52,25 +55,68 @@ def get_risk_customers(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-# POST /alerts/send
 @app.post("/alerts/send")
-def send_alert(payload: dict, db: Session = Depends(get_db)):
+def send_alert(
+    payload: dict,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    # 1) validate input
     try:
         customer_id = int(payload["customer_id"])
         message = str(payload.get("message") or "Automatic risk alert")
     except Exception:
         raise HTTPException(status_code=400, detail="customer_id is required")
 
+    # 2) create alert in DB (this pulls customer_name from the snapshot internally)
+    raw_message = (
+    payload.get("message")
+    or payload.get("preview")
+    or payload.get("email_body")
+)
+
+    message = raw_message.strip() if isinstance(raw_message, str) and raw_message.strip() else "Automatic risk alert"
+
     try:
         alert = alerts_crud.create_alert_from_snapshot(
             db=db,
             customer_id=customer_id,
-            message=message
+            message = message,
         )
-        return {"status": "sent", "alert_id": alert.id}
-
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+    # 3) email content (UI-friendly)
+    customer_name = alert.customer_name
+    subject = f"🚨 Risk Alert – {customer_name}"
+    body = f"""Smart Customer Alerts
+
+Customer: {customer_name}
+
+Message:
+{alert.message}
+"""
+
+    # 4) send email asynchronously
+    background_tasks.add_task(
+        send_email_smtp,
+        settings.email_host,
+        settings.email_port,
+        settings.email_user,
+        settings.email_pass,
+        settings.email_to,          # always your email
+        subject,
+        body,
+        settings.email_from_name,
+    )
+
+    # 5) response
+    return {
+        "status": "sent",
+        "alert_id": alert.id,
+        "customer_name": customer_name,
+        "email_sent_to": settings.email_to,
+    }
 
 
 # GET /alerts
