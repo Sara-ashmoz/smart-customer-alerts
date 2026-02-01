@@ -12,3 +12,6 @@ htmlcov/
 .coverage
 coverage.xml
 .venv/
+
+skill.db
+*.db
