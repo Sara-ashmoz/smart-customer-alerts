@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Literal
 
-RiskLevel = Literal["Low", "Medium", "High"]
+RiskLevel = Literal["Safe", "Low", "Medium", "High"]
 
 class CustomerRiskOut(BaseModel):
     customer_id: int
