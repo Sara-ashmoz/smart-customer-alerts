@@ -1,5 +1,4 @@
-name: API Tests + Allure
-
+name: API Tests
 
 on:
   pull_request:
@@ -24,32 +23,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests (exclude integration) and collect Allure
+      - name: Run tests (exclude integration) + Coverage
         run: |
-          pytest -v test/ -m "not integration" --alluredir=allure-results
-
-
-      - name: Install Allure CLI (and Java)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y default-jre
-          curl -fsSL https://github.com/allure-framework/allure2/releases/download/2.27.0/allure-2.27.0.tgz -o allure.tgz
-          tar -zxvf allure.tgz
-          sudo mv allure-2.27.0 /opt/allure
-          sudo ln -s /opt/allure/bin/allure /usr/bin/allure
-
-      - name: Generate Allure HTML report
-        run: |
-          allure generate allure-results -o allure-report --clean
-
-      - name: Upload Allure report artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-report
-          path: allure-report
+          pytest -v test/ -m "not integration" \
+            --cov=. \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
 
