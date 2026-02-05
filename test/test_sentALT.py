@@ -1,5 +1,7 @@
 import unittest
+from unittest.mock import patch
 from fastapi.testclient import TestClient
+
 
 class TestAlertsSendEndpoint(unittest.TestCase):
 
@@ -7,7 +9,6 @@ class TestAlertsSendEndpoint(unittest.TestCase):
         from app import app
         self.client = TestClient(app)
 
-        # fresh DB each run (אחרי import app כדי למחוק גם כל seed)
         from db import Base, engine
         Base.metadata.drop_all(bind=engine)
         Base.metadata.create_all(bind=engine)
@@ -18,7 +19,6 @@ class TestAlertsSendEndpoint(unittest.TestCase):
 
         db = SessionLocal()
 
-        # ביטחון: אם משהו כבר הכניס שורה עם אותו customer_id – מוחקים
         db.query(CustomerRiskSnapshot).filter(
             CustomerRiskSnapshot.customer_id == customer_id
         ).delete()
@@ -32,13 +32,14 @@ class TestAlertsSendEndpoint(unittest.TestCase):
             has_overdue=True,
             risk_score=80.0,
             risk_level="High",
-            reasons="Has at least one overdue invoice (+50)"
+            reasons="Has at least one overdue invoice (+50)",
         )
         db.add(snap)
         db.commit()
         db.close()
 
-    def test_send_alert_success(self):
+    @patch("app.send_email_smtp", autospec=True)
+    def test_send_alert_success(self, mock_send_email):
         self._insert_snapshot(customer_id=1)
 
         payload = {"customer_id": 1, "message": "Dear Beta Corp, your invoice is overdue."}
@@ -48,6 +49,9 @@ class TestAlertsSendEndpoint(unittest.TestCase):
         body = response.json()
         self.assertEqual(body["status"], "sent")
         self.assertIsInstance(body["alert_id"], int)
+
+        # ✅ verify that "sending email" was triggered, but not really sent
+        self.assertTrue(mock_send_email.called)
 
         # DB assert: alert saved
         from db import SessionLocal
@@ -60,6 +64,7 @@ class TestAlertsSendEndpoint(unittest.TestCase):
         self.assertIsNotNone(alert)
         self.assertEqual(alert.customer_id, 1)
         self.assertEqual(alert.status, "sent")
+        self.assertEqual(alert.message, payload["message"])
 
     def test_send_alert_missing_customer_id(self):
         payload = {"message": "hi"}
@@ -73,6 +78,8 @@ class TestAlertsSendEndpoint(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertTrue(isinstance(response.json().get("detail"), str))
 
+
 if __name__ == "__main__":
     unittest.main()
+
 

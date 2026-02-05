@@ -12,5 +12,6 @@ htmlcov/
 .coverage
 coverage.xml
 .venv/
-.anthropickey
 
+skill.db
+*.db

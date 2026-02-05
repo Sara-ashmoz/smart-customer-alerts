@@ -20,7 +20,7 @@ app = FastAPI(title="Smart Customer Alerts API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",   
+        "http://localhost:3000", "https://sapindaceous-chagrinedly-camilla.ngrok-free.dev",   
     ],
     allow_credentials=True,
     allow_methods=["*"],
