@@ -76,12 +76,15 @@ class RiskService:
             score += 20
             reasons.append(f"Unpaid invoices {unpaid_count} >= {settings.unpaid_n} (+20)")
 
-        if score <= 39:
+        if score == 0:
+            level = "Safe"
+        elif score <= 39:
             level = "Low"
         elif score <= 69:
             level = "Medium"
         else:
             level = "High"
+
 
         return {
             "unpaid_count": unpaid_count,

@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from settings import settings
 
+
 DATABASE_URL = getattr(settings, "database_url", None) or "sqlite:///./skill.db"
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
