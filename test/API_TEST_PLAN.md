@@ -36,16 +36,6 @@ B) Integration Tests (ERP + DB)  [NOT RUN IN CI]
 Reason: integration tests depend on external ERP availability + secrets, so they are excluded from CI.
 
 
-3) Environment / Setup
-----------------------
-- SQLite database reset per test (drop_all/create_all)
-- FastAPI TestClient (no uvicorn)
-- Dolibarr integration requires:
-  * DOLIBARR_BASE_URL
-  * DOLIBARR_API_KEY
-- Email sending is patched/mocked in tests to avoid real sends.
-
-
 4) Success Criteria
 -------------------
 API + DB + Integration testing is considered successful when:
@@ -59,7 +49,7 @@ API + DB + Integration testing is considered successful when:
 - Real Dolibarr integration test (when env vars exist):
   * /risk/customers returns non-empty list
   * DB snapshot count > 0
-- Code coverage is above 90% (Test Coverage >= 90%) and is visible in Codecov.
+- Code coverage is above 90% and is visible in Codecov.
 - test coverage is 100% and visible in Allure.
 
 
